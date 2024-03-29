@@ -1,162 +1,139 @@
 import numpy as np
 
-# All Resulted Individuals' Evaluations - In Caller
-#
-#TOATE EVALUARILE INDIVIZILOR REZULTATI - IN APELATOR
 
+# ------------ Binary Arrays ------------
 
-# Binary Arrays
 # bit flip mutation
-# I: x - the value that is being modified
-# O: y - the result of the mutation
-#
-# VECTORI BINARI
-# mutatia bitflip
-#I: x - valoarea care se modifica
-#E: y - rezultatul mutatiei
-def m_binar(x):
-    y=not x
-    return int(y)
+def bit_flip_mutation(initial_value):
+    mutation_result = not initial_value
+    return int(mutation_result)
 
 
-# Integer Numbers Arrays
-# randomly resetting
-# I: a,b - the resetting is being made on the set a, a+1, ..., b-1
-# O: y - the new value
-#
-#VECTORI NUMERE INTREGI
-#resetare aleatoare
-#I:a,b - resetarea se face pe multimea a, a+1,...,b-1
-#E: y - noua valoare
-def m_ra(a,b):
-    y=np.random.randint(a,b)
-    return y
+# ------------ Integer Numbers Arrays ------------
 
-# "fluaj" mutation
-# I: x - value to change
-#    a,b - the limits that have to output the result y, the variant of x modified by a unit
-# O: y - as above
-#
-#mutatia fluaj
-#I: x - valoarea de modificat
-#   a,b - limitele in care trebuie sa rezulte iesirea y, varianta a lui x modificata cu o unitate
-#E:y - ca mai sus
-def m_fluaj(x,a,b):
+# randomly resetting - resets the value, randomly choosing it from the interval
+def random_resetting_mutation(lower_limit, upper_limit):
+    mutation_result = np.random.randint(lower_limit, upper_limit)
+    return mutation_result
+
+
+# "creep" mutation - slightly changes the initial value (very small change)
+def creep_mutation(initial_value, lower_limit, upper_limit):
     # generating +1 or -1
-    #
-    #generare +1 sau -1
-    p=np.random.randint(0,2)
-    if p==0:
-        sign=-1
-    else:
-        sign=1
-    y=x+sign
-    if y>b:
-        y=b
-    if y<a:
-        y=a
-    return y
+    sign = np.random.choice([-1, 1])
 
-# Real Numbers Arrays
-# Uniform Mutation
-# I: a,b - the interval in which the resetting is being done
-# O: y - the new value
-#
-#VECTORI NUMERE REALE
-#mutatia uniforma
-#I:a,b - intervalul in care se face resetarea
-#E: y - noua valoare
-def m_uniforma(a,b):
-    y=np.random.uniform(a,b)
-    return y
+    mutation_result = initial_value + sign
 
-# non-uniform mutation
-# I: x - value to change
-#    sigma - "fluaj" step
-#    a,b - the limits in which the output y must be
-# O: y - as above
-#
-#mutatia neuniforma
-#I: x - valoarea de modificat
-#   sigma - pasul de fluaj
-#   a,b - limitele in care trebuie sa rezulte iesirea y
-#E:y - ca mai sus
-def m_neuniforma(x,sigma,a,b):
-    #generate noise
-    #
-    #generare zgomot
-    p=np.random.normal(0,sigma)
-    y=x+p
-    if y>b:
-        y=b
-    if y<a:
-        y=a
-    return y
+    if mutation_result > upper_limit:
+        mutation_result = upper_limit
+
+    if mutation_result < lower_limit:
+        mutation_result = lower_limit
+
+    return mutation_result
 
 
-# Permutations
-# the inversion mutation of the permutation x with n components
-# I: x,n
-# O: y - result permutation
-#
-#PERMUTARI
-# mutatia prin inversiune a permutarii x cu n componete
-# I:x,n
-# E:y - permutarea rezultat
-def m_perm_inversiune(x,n):
+# ------------ Real Numbers Arrays ------------
+
+# Uniform Mutation - resets the value, randomly choosing it from the interval
+def uniform_mutation(lower_limit, upper_limit):
+    mutation_result = np.random.uniform(lower_limit, upper_limit)
+    return mutation_result
+
+
+# non-uniform mutation - slightly changes the initial value with a random number
+def non_uniform_mutation(initial_value, max_creep_value, lower_limit, upper_limit):
+    # generate noise
+    random_factor = np.random.normal(-max_creep_value, max_creep_value)
+    mutation_result = initial_value + random_factor
+
+    if mutation_result > upper_limit:
+        mutation_result = upper_limit
+
+    if mutation_result < lower_limit:
+        mutation_result = lower_limit
+
+    return mutation_result
+
+
+# ------------ Permutations ------------
+
+# Inversion Mutation - reverses a randomly selected portion of the permutation
+
+# Example:
+# poz_1 = 2
+# poz_2 = 6
+# Initial permutation = 4 3 !6 5 7 2 1! 8
+# Result =              4 3 !1 2 7 5 6! 8
+# Note: the "!" encapsulates the changed members
+# Note: due to being python arrays, the position in the permutation starts from 0
+
+def inversion_mutation(initial_permutation):
+    # Find out the length of the permutation
+    permutation_size = len(initial_permutation)
+
     # generates the positions for the inversion
-    #
-    # generarea pozitiilor pentru inversiune
-    poz = np.random.randint(0, n, 2)
-    while poz[0] == poz[1]:
-        poz = np.random.randint(0, n, 2)
-    p1 = np.min(poz)
-    p2 = np.max(poz)
-    y=x.copy()
-    y[p1:p2+1]=[x[i] for i in range(p2,p1-1,-1)]
-    return y
+    poz_1 = np.random.randint(0, permutation_size - 1)
+    poz_2 = np.random.randint(poz_1 + 1, permutation_size)
+
+    # Copy the initial permutation
+    mutation_result = initial_permutation.copy()
+
+    # And reverse the segment denoted by poz_1 and poz_2
+    mutation_result[poz_1:poz_2 + 1] = initial_permutation[poz_2:poz_1 - 1:-1]
+
+    return mutation_result
 
 
-# interchange(swap) mutation of the permutation x with n components
-# I: x,n
-# O: y - result permutation
-#
-# mutatia prin interschimbare a permutarii x cu n componete
-# I:x,n
-# E:y - permutarea rezultat
-def m_perm_interschimbare(x,n):
-    # generates the positions for the inversion
-    #
-    # generarea pozitiilor pentru inversiune
-    poz = np.random.randint(0, n, 2)
-    while poz[0] == poz[1]:
-        poz = np.random.randint(0, n, 2)
-    p1 = np.min(poz)
-    p2 = np.max(poz)
-    y=x.copy()
-    y[p1]=x[p2]
-    y[p2]=x[p1]
-    return y
+# Swap Mutation - swaps 2 random values of the permutation
+
+# Example:
+# poz_1 = 2
+# poz_2 = 6
+# Initial permutation = 4 3 6 5 7 2 1 8
+# Result =              4 3 1 5 7 2 6 8
+# Note: due to being python arrays, the position in the permutation starts from 0
+
+def swap_mutation(initial_permutation):
+    # Find out the length of the permutation
+    permutation_size = len(initial_permutation)
+
+    # generates the positions for the swap
+    poz_1 = np.random.randint(0, permutation_size - 1)
+    poz_2 = np.random.randint(poz_1 + 1, permutation_size)
+
+    mutation_result = initial_permutation.copy()
+    mutation_result[poz_1] = initial_permutation[poz_2]
+    mutation_result[poz_2] = initial_permutation[poz_1]
+
+    return mutation_result
 
 
-# mutation through the insertion of the permutation x with n components
-# I: x,n
-# O: y - result permutation
-#
-# mutatia prin inserare a permutarii x cu n componete
-# I:x,n
-# E:y - permutarea rezultat
-def m_perm_inserare(x,n):
-    # generates the positions for the inversion
-    #
-    # generarea pozitiilor pentru inversiune
-    poz = np.random.randint(0, n, 2)
-    while poz[0] == poz[1]:
-        poz = np.random.randint(0, n, 2)
-    p1 = np.min(poz)
-    p2 = np.max(poz)
-    y=x.copy()
-    y[p1+1]=x[p2]
-    if p1<n-2:
-        y[p1+2:n]=np.array([x[i] for i in range(p1+1,n) if i != p2])
-    return y
+# Insertion Mutation - chooses 2 random positions and:
+# 1. copies the element from position 2 in front of position 1
+# 2. copies the elements which were initially between the 2 positions after
+
+# Example:
+# poz_1 = 2
+# poz_2 = 6
+# Initial permutation = 4 3 !6 5 7 2 1! 8
+    # Result =          4 3 !6 1 5 7 2! 8
+# Note: the "!" encapsulates the changed members
+# Note: due to being python arrays, the position in the permutation starts from 0
+
+def insertion_mutation(initial_permutation):
+    # Find out the length of the permutation
+    permutation_size = len(initial_permutation)
+
+    # generates the positions for the swap
+    poz_1 = np.random.randint(0, permutation_size - 1)
+    poz_2 = np.random.randint(poz_1 + 1, permutation_size)
+    print(poz_1, poz_2)
+
+    mutation_result = initial_permutation.copy()
+    mutation_result[poz_1 + 1] = initial_permutation[poz_2]
+
+    for i in range(poz_2 - poz_1 - 1):
+        mutation_result[poz_1 + i + 2] = initial_permutation[poz_1 + i + 1]
+
+    return mutation_result
