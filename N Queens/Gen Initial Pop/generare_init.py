@@ -1,66 +1,68 @@
 import numpy as np
-import matplotlib.pyplot as grafic
+import matplotlib.pyplot as plt
 
 
-# objective function
-#
-#f. obiectiv
-def foNR(x,n):
-    # the objective function for the N-queens problem
-    # I: x - the individual (permutation) evaluated(a), n - the dimension of the problem
-    # O: c - quality (the number of pairs of queens which are not attacking each other)
-    #
-    # functia obiectiv pentru problema reginelor
-    # I: x - individul (permutarea) evaluat(a), n-dimensiunea problemei
-    # E: c - calitate (numarul de perechi de regine care nu se ataca)
+# function to compute the quality of each individual (permutation)
+def compute_quality(permutation):
+    # we subtract 1 from the length of the list because on the last position we find the quality
+    no_of_queens = len(permutation) - 1
 
-    c = n*(n-1)/2
-    for i in range(n-1):
-        for j in range(i+1,n):
-            if abs(i-j)==abs(x[i]-x[j]):
-                c=c-1
-                #c-=1
-    return c
+    # we assume maximum quality from the start
+    quality = no_of_queens * (no_of_queens - 1) / 2
 
-#population representation by points (individual index, quality) - to see the variability in the population 
-#
-#figurarea populatiei prin punctele (indice individ, calitate) - pentru a vedea variabilitatea in populatie
-def reprezinta_pop(pop,dim,n):
-    x=[i for i in range(dim)]
-    y=[pop[i][n] for i in range(dim)]
-    grafic.plot(x,y,"gs-",markersize=11)
+    for i in range(no_of_queens - 1):
+        for j in range(i + 1, no_of_queens):
+            # for each queen that attacks each other we decrease the quality by 1
+            if abs(i - j) == abs(permutation[i] - permutation[j]):
+                quality -= 1
+
+    return quality
+
+
+# function with returns a list (on the last position is the quality)
+def create_individual(no_of_queens):
+    # create a random permutation
+    individual = np.random.permutation(no_of_queens).tolist()
+
+    # compute the quality of the individual (permutation)
+    quality = compute_quality(individual)
+
+    # attach the quality on the last position of the individual
+    individual.append(quality)
+
+    return individual
+
+
+# population representation by points (individual index, quality) - to see the variability in the population
+def draw_population(population):
+    population_size = len(population)
+    # compute the index of the quality
+    position_of_quality = len(population[0]) - 1
+
+    # on the x-axis we represent the index of each individual
+    x_axis = [i for i in range(population_size)]
+
+    # on the y-axis we represent the quality of each individual
+    y_axis = [population[i][position_of_quality] for i in range(population_size)]
+
+    plt.plot(x_axis, y_axis, "gs-", markersize=11)
+    plt.show()
 
 
 # generate the initial population
-# I:
-#  n - the dimension of the problem
-#  dim - the number of individuals from the population
-# O: pop - initial population
-#
-#genereaza populatia initiala
-#I:
-# n - dimensiunea problemei
-# dim - numarul de indivizi din populatie
-#E: pop - populatia initiala
-def gen(n,dim):
-    # define a variable ndarray with all elements zero
-    #
-    #defineste o variabila ndarray cu toate elementele nule
-    pop=np.zeros((dim,n+1),dtype=int)
-    for i in range(dim):
-        # generate the candidate permutation with n elements
-        #
-        #genereaza candidatul permutare cu n elemente
-        pop[i,:n]=np.random.permutation(n)
-        pop[i,n]=foNR(pop[i,:],n)
-    reprezinta_pop(pop, dim, n)
-    return pop
+def generate_initial_population(no_of_queens, population_size):
+    # define matrix with all elements 0
+    # the matrix will have population_size number of lines (each line = one individual)
+    # the matrix will have no_of_queens + 1 number of columns (last column for quality)
+    population = np.zeros((population_size, no_of_queens + 1), dtype=int)
 
-# Function calling example in Python Console:
-#
-#Exemplu de apel in consola:
-#1
-#import generare_init as gi
-#2
-#p=gi.gen(8,30)
+    for i in range(population_size):
+        # generate the permutation
+        population[i] = create_individual(no_of_queens)
 
+    draw_population(population)
+    return population
+
+
+p = generate_initial_population(8, 30)
+plt.show()
